@@ -1,0 +1,31 @@
+// proxy-switch.js
+
+// Get current timestamp (milliseconds)
+let now = Date.now();
+
+// Get the last switch time from persistent store
+let lastSwitchTime = $persistentStore.read("lastSwitchTime");
+if (!lastSwitchTime) {
+    lastSwitchTime = now;
+    $persistentStore.write(lastSwitchTime, "lastSwitchTime");
+}
+
+let elapsed = now - lastSwitchTime;
+
+// Switch proxy every four hours (14400000 milliseconds)
+if (elapsed >= 14400000) {
+    // Get current proxy group information
+    let proxyGroup = $surge.selectGroupDetail('ProxyGroup');
+
+    // Randomly select a proxy
+    let newProxy = proxyGroup.proxies[Math.floor(Math.random() * proxyGroup.proxies.length)];
+
+    // Switch to the new proxy
+    $surge.setSelectGroupPolicy('ProxyGroup', newProxy.name);
+
+    // Update the last switch time
+    $persistentStore.write(now, "lastSwitchTime");
+}
+
+// End script
+$done();
